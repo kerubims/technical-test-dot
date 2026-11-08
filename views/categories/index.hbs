@@ -1,0 +1,105 @@
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Kategori</h2>
+    </div>
+    <a href="/categories/create" class="btn btn-primary">+ Tambah Kategori</a>
+  </div>
+
+  <!-- Form Pencarian -->
+  <form action="/categories" method="GET" class="filter-bar">
+    <input
+      type="text"
+      name="search"
+      value="{{search}}"
+      placeholder="Cari kategori..."
+      class="form-control"
+    />
+    <button type="submit" class="btn btn-primary">Cari</button>
+    {{#if search}}
+    <a href="/categories" class="btn btn-secondary">Reset</a>
+    {{/if}}
+  </form>
+
+  <!-- Tabel Data -->
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 70px;">ID</th>
+          <th>Nama Kategori</th>
+          <th>Deskripsi</th>
+          <th class="text-center" style="width: 130px;">Jumlah Produk</th>
+          <th style="width: 160px;">Dibuat Pada</th>
+          <th class="text-right" style="width: 180px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each categories}}
+        <tr>
+          <td><span class="code-badge">#{{this.id}}</span></td>
+          <td>
+            <strong><a href="/categories/{{this.id}}" style="color: #2563eb; text-decoration: none;">{{this.name}}</a></strong>
+          </td>
+          <td class="text-muted">
+            {{#if this.description}}{{this.description}}{{else}}<em>-</em>{{/if}}
+          </td>
+          <td class="text-center">
+            <span class="badge badge-blue">
+              {{#if this.products}}{{this.products.length}}{{else}}0{{/if}}
+            </span>
+          </td>
+          <td class="text-muted">{{formatDate this.created_at}}</td>
+          <td class="text-right">
+            <a href="/categories/{{this.id}}" class="btn btn-sm btn-secondary">Detail</a>
+            <a href="/categories/{{this.id}}/edit" class="btn btn-sm btn-warning">Edit</a>
+            <button
+              type="button"
+              onclick="handleDeleteCategory({{this.id}}, '{{this.name}}')"
+              class="btn btn-sm btn-danger"
+            >
+              Hapus
+            </button>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="6" class="empty-state">
+            {{#if search}}
+            Tidak ada kategori yang cocok dengan pencarian "<strong>{{search}}</strong>".
+            {{else}}
+            Belum ada data kategori. Silakan klik "+ Tambah Kategori".
+            {{/if}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function handleDeleteCategory(id, name) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus kategori "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        window.location.href = '/categories?success=' + encodeURIComponent(`Kategori "${name}" berhasil dihapus.`);
+      } else {
+        const err = await response.json();
+        alert('Gagal menghapus: ' + (err.message || 'Terjadi kesalahan'));
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan jaringan.');
+    }
+  }
+</script>

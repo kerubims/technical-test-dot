@@ -1,0 +1,78 @@
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h1 class="card-title">Dashboard</h1>
+      <p class="card-desc">Selamat datang, <strong>{{user.username}}</strong>.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="/categories/create" class="btn btn-primary">+ Kategori</a>
+      <a href="/products/create" class="btn btn-success">+ Produk</a>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-title">Total Kategori</span>
+      <div class="stat-value">{{stats.totalCategories}}</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Total Produk</span>
+      <div class="stat-value">{{stats.totalProducts}}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title" style="font-size: 16px;">Produk Terbaru</h2>
+    </div>
+    <a href="/products" class="btn btn-secondary btn-sm">Lihat Semua Produk &rarr;</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Nama Produk</th>
+          <th>Kategori</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th style="text-align: right;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each recentProducts}}
+        <tr>
+          <td><code>{{this.sku}}</code></td>
+          <td><strong>{{this.name}}</strong></td>
+          <td>
+            {{#if this.category}}
+            <span class="badge badge-blue">{{this.category.name}}</span>
+            {{else}}
+            <span style="color: #94a3b8; font-style: italic;">-</span>
+            {{/if}}
+          </td>
+          <td>{{formatRupiah this.price}}</td>
+          <td>
+            <span class="badge {{#if (eq this.stock 0)}}badge-red{{else}}badge-green{{/if}}">
+              {{this.stock}} unit
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <a href="/products/{{this.id}}" class="btn btn-secondary btn-sm">Detail</a>
+            <a href="/products/{{this.id}}/edit" class="btn btn-warning btn-sm">Edit</a>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">
+            Belum ada data produk.
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<div class="mb-3 d-flex justify-between align-center">
+  <a href="/categories" class="btn btn-secondary">&larr; Kembali</a>
+  <div class="d-flex gap-2">
+    <a href="/categories/{{category.id}}/edit" class="btn btn-warning">Edit</a>
+    <button
+      type="button"
+      onclick="handleDeleteCategory({{category.id}}, '{{category.name}}')"
+      class="btn btn-danger"
+    >
+      Hapus
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">{{category.name}}</h2>
+      <p class="card-desc">
+        {{#if category.description}}{{category.description}}{{else}}<em>Tidak ada deskripsi.</em>{{/if}}
+      </p>
+    </div>
+    <div class="text-right text-muted">
+      <div>Dibuat: <strong>{{formatDate category.created_at}}</strong></div>
+      <div class="mt-1">Diperbarui: <strong>{{formatDate category.updated_at}}</strong></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Daftar Produk</h3>
+    </div>
+    <a href="/products/create" class="btn btn-primary btn-sm">+ Tambah Produk</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 120px;">SKU</th>
+          <th>Nama Produk</th>
+          <th>Harga</th>
+          <th style="width: 100px;">Stok</th>
+          <th class="text-right" style="width: 140px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each products}}
+        <tr>
+          <td><span class="code-badge">{{this.sku}}</span></td>
+          <td>
+            <strong><a href="/products/{{this.id}}" style="color: #2563eb; text-decoration: none;">{{this.name}}</a></strong>
+          </td>
+          <td><strong>{{formatRupiah this.price}}</strong></td>
+          <td>
+            <span class="badge {{#if (eq this.stock 0)}}badge-red{{else}}badge-green{{/if}}">
+              {{this.stock}} unit
+            </span>
+          </td>
+          <td class="text-right">
+            <a href="/products/{{this.id}}" class="btn btn-sm btn-secondary">Detail</a>
+            <a href="/products/{{this.id}}/edit" class="btn btn-sm btn-warning">Edit</a>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="5" class="empty-state">
+            Belum ada produk dalam kategori ini.
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function handleDeleteCategory(id, name) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus kategori "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/categories/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (response.ok) {
+        window.location.href = '/categories?success=' + encodeURIComponent(`Kategori "${name}" berhasil dihapus.`);
+      } else {
+        const err = await response.json();
+        alert('Gagal menghapus: ' + (err.message || 'Terjadi kesalahan'));
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan jaringan.');
+    }
+  }
+</script>

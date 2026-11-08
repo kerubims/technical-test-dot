@@ -1,0 +1,13 @@
+{{#if success}}
+<div class="alert alert-success">
+  <span><strong>Berhasil:</strong> {{success}}</span>
+  <button type="button" class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-error">
+  <span><strong>Perhatian:</strong> {{error}}</span>
+  <button type="button" class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+</div>
+{{/if}}

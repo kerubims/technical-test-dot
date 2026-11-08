@@ -1,0 +1,124 @@
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Produk</h2>
+    </div>
+    <a href="/products/create" class="btn btn-primary">+ Tambah Produk</a>
+  </div>
+
+  <!-- Form Pencarian & Filter Kategori -->
+  <form action="/products" method="GET" class="filter-bar">
+    <input
+      type="text"
+      name="search"
+      value="{{search}}"
+      placeholder="Cari produk atau SKU..."
+      class="form-control"
+      style="flex: 2;"
+    />
+    <select name="categoryId" class="form-control" style="flex: 1;">
+      <option value="">Semua Kategori</option>
+      {{#each categories}}
+      <option value="{{this.id}}" {{#if (eq this.id ../selectedCategoryId)}}selected{{/if}}>
+        {{this.name}}
+      </option>
+      {{/each}}
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {{#if search}}
+    <a href="/products" class="btn btn-secondary">Reset</a>
+    {{else}}
+      {{#if selectedCategoryId}}
+      <a href="/products" class="btn btn-secondary">Reset</a>
+      {{/if}}
+    {{/if}}
+  </form>
+
+  <!-- Tabel Data Produk -->
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 110px;">SKU</th>
+          <th>Nama Produk</th>
+          <th>Kategori</th>
+          <th>Harga</th>
+          <th style="width: 100px;">Stok</th>
+          <th style="width: 150px;">Dibuat Pada</th>
+          <th class="text-right" style="width: 180px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each products}}
+        <tr>
+          <td><span class="code-badge">{{this.sku}}</span></td>
+          <td>
+            <strong><a href="/products/{{this.id}}" style="color: #2563eb; text-decoration: none;">{{this.name}}</a></strong>
+          </td>
+          <td>
+            {{#if this.category}}
+            <a href="/categories/{{this.category.id}}" class="badge badge-blue" style="text-decoration: none;">
+              {{this.category.name}}
+            </a>
+            {{else}}
+            <span class="text-muted">-</span>
+            {{/if}}
+          </td>
+          <td><strong>{{formatRupiah this.price}}</strong></td>
+          <td>
+            <span class="badge {{#if (eq this.stock 0)}}badge-red{{else}}badge-green{{/if}}">
+              {{this.stock}} unit
+            </span>
+          </td>
+          <td class="text-muted">{{formatDate this.created_at}}</td>
+          <td class="text-right">
+            <a href="/products/{{this.id}}" class="btn btn-sm btn-secondary">Detail</a>
+            <a href="/products/{{this.id}}/edit" class="btn btn-sm btn-warning">Edit</a>
+            <button
+              type="button"
+              onclick="handleDeleteProduct({{this.id}}, '{{this.name}}')"
+              class="btn btn-sm btn-danger"
+            >
+              Hapus
+            </button>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="7" class="empty-state">
+            {{#if search}}
+            Tidak ada produk yang cocok dengan pencarian "<strong>{{search}}</strong>".
+            {{else}}
+            Belum ada data produk. Silakan klik "+ Tambah Produk".
+            {{/if}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function handleDeleteProduct(id, name) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus produk "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/products/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (response.ok) {
+        window.location.href = '/products?success=' + encodeURIComponent(`Produk "${name}" berhasil dihapus.`);
+      } else {
+        const err = await response.json();
+        alert('Gagal menghapus: ' + (err.message || 'Terjadi kesalahan'));
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan jaringan.');
+    }
+  }
+</script>

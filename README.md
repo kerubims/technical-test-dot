@@ -1,114 +1,222 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Technical Test Maganghub Batch 3 - 2026: NestJS Fullstack MVC Admin Panel
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Aplikasi web **Admin Panel** berbasis **NestJS (TypeScript)** dengan arsitektur **MVC (Model-View-Controller)** dan Server-Side Rendering (SSR) menggunakan template engine Handlebars (`hbs`) dan database SQLite via TypeORM.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Proyek ini dibuat sebagai pemenuhan seleksi teknis posisi **FullStack Engineer (TypeScript)** untuk program **Maganghub Batch 3 - 2026** di **PT DOT Indonesia**.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 1. Penjelasan Proyek & Fitur
 
-## Project setup
+Aplikasi ini mengelola inventaris data dengan relasi **One-to-Many (1:N)** antara tabel **Kategori** (induk) dan tabel **Produk** (anak), dilengkapi dengan sistem otentikasi admin.
 
-```bash
-$ npm install
+### Fitur Utama:
+1. **Sistem Otentikasi & Proteksi Sesi**:
+   - Halaman **Login** (`/login`) dengan validasi kredensial pengguna.
+   - Proteksi route admin menggunakan `AuthGuard` (pengguna tanpa sesi otomatis dialihkan ke `/login`).
+   - Fitur **Logout** (`/logout`) yang menghapus sesi aktif.
+2. **Manajemen Data Berelasi (One-to-Many / 1:N)**:
+   - **Tabel 1 (One) - Kategori**:
+     - List Kategori beserta badge jumlah produk terkait.
+     - Detail Kategori (`/categories/:id`) menampilkan profil kategori sekaligus **daftar produk yang berafiliasi di bawah kategori tersebut**.
+     - Tambah Kategori Baru & Edit Kategori.
+     - Hapus Kategori.
+   - **Tabel 2 (Many) - Produk**:
+     - List Produk dengan relasi kategori induk, format harga Rupiah, dan status ketersediaan stok.
+     - Detail Produk (`/products/:id`) menampilkan spesifikasi produk dan link menuju kategori induknya.
+     - Tambah & Edit Produk dengan dropdown pilihan kategori.
+     - Hapus Produk.
+3. **Fitur Pencarian & Filter Canggih (Search & Filter)**:
+   - Pencarian Kategori berdasarkan nama atau deskripsi.
+   - Pencarian Produk berdasarkan nama, SKU, atau deskripsi, serta filter dropdown berdasarkan kategori tertentu.
+4. **Respon Berbentuk Page (MVC) & Dukungan RESTful Murni**:
+   - Semua rute browser merender halaman web bersih dan responsif dengan styling basic CSS mandiri (bekerja 100% offline tanpa CDN).
+   - Pengujian via Postman (dengan header `Accept: application/json`) mengembalikan respon data JSON murni dengan status kode HTTP yang sesuai (`200 OK`, `201 Created`, dll).
+5. **Modern Best Practice (Zero Hidden Fields)**:
+   - Operasi update dan delete pada antarmuka web memanggil HTTP method murni (`PUT` dan `DELETE`) via Fetch API tanpa input tersembunyi `_method`.
+6. **Error Handling & Validasi Data**:
+   - Validasi data input menggunakan `class-validator` & `class-transformer`.
+   - Global `HttpExceptionFilter` untuk menangani status 404 (Not Found) dan 500 (Internal Server Error) dengan halaman error yang informatif.
+
+---
+
+## 2. Desain Database (ERD)
+
+Desain basis data terdiri dari 3 entitas utama: `User`, `Category`, dan `Product`.
+
+```mermaid
+erDiagram
+    USERS {
+        int id PK
+        string username UK
+        string email UK
+        string password
+        string role
+        datetime created_at
+        datetime updated_at
+    }
+
+    CATEGORIES {
+        int id PK
+        string name
+        string description
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRODUCTS {
+        int id PK
+        int categoryId FK
+        string sku UK
+        string name
+        text description
+        decimal price
+        int stock
+        datetime created_at
+        datetime updated_at
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : "has many (1:N)"
 ```
 
-## Compile and run the project
+### Relasi:
+- **`Category` 1 &mdash; N `Product`**: Satu kategori dapat menaungi banyak produk. Setiap produk memiliki kunci asing `categoryId` yang merujuk ke tabel `categories`.
+- **`User`**: Menyimpan kredensial otentikasi admin dengan kata sandi terenkripsi (*bcrypt*).
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+## 3. Implementasi Pola Arsitektur MVC (Model-View-Controller)
 
-# production mode
-$ npm run start:prod
-```
+Arsitektur aplikasi ini mematuhi pemisahan tanggung jawab (*Separation of Concerns*):
 
-## Run tests
+- **Model**:
+  - `src/auth/entities/user.entity.ts`
+  - `src/categories/entities/category.entity.ts`
+  - `src/products/entities/product.entity.ts`
+  - Menggunakan TypeORM dengan driver `better-sqlite3`.
+- **View**:
+  - Direktori `views/` berisi template Handlebars (`.hbs`).
+  - Layout utama: `views/layouts/main.hbs`
+  - Partials: `views/partials/sidebar.hbs`, `navbar.hbs`, `alerts.hbs`
+  - Modul Views: `views/auth/`, `views/dashboard/`, `views/categories/`, `views/products/`, `views/errors/`
+- **Controller**:
+  - `src/auth/auth.controller.ts`: Menangani rute `/login` dan `/logout`.
+  - `src/dashboard/dashboard.controller.ts`: Menangani `/dashboard` dan statistik ringkasan.
+  - `src/categories/categories.controller.ts`: Menangani CRUD `/categories`.
+  - `src/products/products.controller.ts`: Menangani CRUD `/products`.
+- **Service Layer**:
+  - Menangani logika bisnis (*business logic*) dan akses query database: `CategoriesService`, `ProductsService`, `AuthService`, `SeederService`.
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## 4. Dependensi Proyek
 
-# test coverage
-$ npm run test:cov
-```
+### Dependensi Utama:
+- `@nestjs/core` & `@nestjs/common` (v12.4.0) &mdash; Framework backend utama.
+- `@nestjs/platform-express` (v12.4.0) &mdash; HTTP adapter server Express.
+- `@nestjs/typeorm` & `typeorm` &mdash; Object-Relational Mapper (ORM).
+- `better-sqlite3` &mdash; Driver database SQLite lokal (*zero-setup*).
+- `hbs` &mdash; Template engine Handlebars untuk MVC view rendering.
+- `express-session` &mdash; Manajemen sesi pengguna.
+- `bcryptjs` &mdash; Hashing kata sandi satu arah.
+- `class-validator` & `class-transformer` &mdash; Validasi dan sanitasi DTO.
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 5. Panduan Instalasi & Menjalankan Proyek
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Prasyarat:
+- Node.js versi 20+ atau 22+.
+- NPM versi 10+.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Langkah-langkah:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+1. **Clone Repository & Masuk ke Folder Proyek**:
+   ```bash
+   git clone <link-repository-anda>
+   cd teknikal-test
+   ```
 
-## Observability
+2. **Instal Seluruh Dependensi**:
+   ```bash
+   npm install
+   ```
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+3. **Jalankan Aplikasi dalam Mode Pengembangan (Development)**:
+   ```bash
+   npm run start:dev
+   ```
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+4. **Buka Aplikasi di Browser**:
+   Akses: [http://localhost:3000](http://localhost:3000)
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+### Kredensial Default (Auto-Seeder):
+Saat aplikasi pertama kali dijalankan, sistem otomatis membuat database `database.sqlite` dan mengisi data awal (*seeding*):
+- **Username**: `admin`
+- **Password**: `admin123`
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## 6. Pengujian Endpoint via Postman
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Telah disediakan berkas koleksi Postman siap pakai di root proyek: **`postman_collection.json`**.
 
-## Support
+### Cara Import ke Postman:
+1. Buka aplikasi Postman.
+2. Klik tombol **Import** di pojok kiri atas.
+3. Pilih berkas `postman_collection.json` dari folder proyek ini.
+4. Koleksi **Maganghub Technical Test** akan muncul lengkap dengan seluruh request:
+   - `POST   /login`
+   - `POST   /logout`
+   - `GET    /categories` (dengan parameter `search`)
+   - `POST   /categories`
+   - `GET    /categories/:id`
+   - `PUT    /categories/:id`
+   - `DELETE /categories/:id`
+   - `GET    /products` (dengan parameter `search` & `categoryId`)
+   - `POST   /products`
+   - `GET    /products/:id`
+   - `PUT    /products/:id`
+   - `DELETE /products/:id`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+> **Tips Pengujian Postman**:
+> Postman menyertakan header `Accept: application/json` sehingga respons yang diterima berbentuk JSON murni berstatus `200 OK` atau `201 Created`.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 7. Panduan Rekam Video Demo (Screencast Checklist)
 
-## License
+Sesuai instruksi teknis, video demo setidaknya harus mencakup poin-poin berikut:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+1. **[ ] Login Flow**:
+   - Tunjukkan halaman `/login`. Coba input password salah untuk memperlihatkan pesan error.
+   - Masukkan kredensial `admin` / `admin123` dan tunjukkan transisi masuk ke `/dashboard`.
+2. **[ ] CRUD 2 Tabel Berelasi**:
+   - Tunjukkan daftar kategori & produk.
+   - Tambah Kategori baru.
+   - Tambah Produk baru yang memilih kategori yang baru saja dibuat.
+   - Buka halaman **Detail Kategori** dan perlihatkan produk yang berafiliasi (bukti relasi 1:N).
+   - Edit produk/kategori.
+   - Hapus produk/kategori.
+   - Uji fitur **Pencarian (Search)** nama produk dan filter kategori.
+3. **[ ] Testing API di Postman**:
+   - Buka Postman dan jalankan endpoint `POST /login`.
+   - Jalankan `GET /categories` dan `GET /products`.
+   - Jalankan `POST`, `PUT`, dan `DELETE`. Perlihatkan respon JSON berstatus sukses.
+4. **[ ] Penjelasan Fitur & Pemilihan Data**:
+   - Jelaskan bahwa studi kasus yang dipilih adalah inventarisasi katalog (*Kategori & Produk*) yang merupakan studi kasus universal relasi 1:N.
+5. **[ ] Penjelasan Pola MVC dalam Source Code**:
+   - Buka VS Code / IDE.
+   - Jelaskan letak **Model** (`entities/`), **View** (`views/` dan `.hbs`), serta **Controller** (`*.controller.ts`).
+   - Tunjukkan bagaimana Controller berinteraksi dengan Service lalu merender View.
+6. **[ ] Penjelasan Error Handling**:
+   - Tunjukkan berkas `src/common/filters/http-exception.filter.ts`.
+   - Buka URL sembarang di browser (misal `http://localhost:3000/halaman-tidak-ada`) untuk memperlihatkan halaman error 404 kustom.
+
+---
+
+## 8. Catatan untuk Developer Selanjutnya (*Developer Handoff*)
+
+- **Database**: SQLite digunakan untuk kemudahan evaluasi lokal. Jika ingin beralih ke PostgreSQL atau MySQL di production, cukup ubah konfigurasi `TypeOrmModule.forRoot()` di `src/app.module.ts` dengan menyetel driver `postgres`/`mysql` dan konfigurasi environment `.env`.
+- **Template Engine**: Template engine menggunakan Handlebars (`hbs`). Seluruh styling mengandalkan utilitas Tailwind CSS via CDN sehingga tidak memerlukan proses build CSS tambahan.
+- **Method Override**: Tidak ada field tersembunyi `_method`. Pengiriman method `PUT` dan `DELETE` di sisi client menggunakan standar Fetch API modern.

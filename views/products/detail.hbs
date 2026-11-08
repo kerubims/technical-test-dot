@@ -1,0 +1,83 @@
+<div class="mb-3 d-flex justify-between align-center">
+  <a href="/products" class="btn btn-secondary">&larr; Kembali</a>
+  <div class="d-flex gap-2">
+    <a href="/products/{{product.id}}/edit" class="btn btn-warning">Edit</a>
+    <button
+      type="button"
+      onclick="handleDeleteProduct({{product.id}}, '{{product.name}}')"
+      class="btn btn-danger"
+    >
+      Hapus
+    </button>
+  </div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <div class="card-header">
+    <div>
+      <span class="code-badge">SKU: {{product.sku}}</span>
+      <h2 class="card-title mt-1">{{product.name}}</h2>
+    </div>
+    <div>
+      {{#if product.category}}
+      <a href="/categories/{{product.category.id}}" class="badge badge-blue" style="text-decoration: none; font-size: 13px; padding: 6px 12px;">
+        {{product.category.name}}
+      </a>
+      {{else}}
+      <span class="text-muted">-</span>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <div class="detail-label">Harga</div>
+      <div class="detail-val" style="color: #2563eb;">{{formatRupiah product.price}}</div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">Stok</div>
+      <div class="detail-val">
+        {{product.stock}} unit
+        <span class="badge {{#if (eq product.stock 0)}}badge-red{{else}}badge-green{{/if}}" style="font-size: 11px; vertical-align: middle;">
+          {{#if (eq product.stock 0)}}Habis{{else}}Tersedia{{/if}}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label">Deskripsi</label>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; font-size: 14px; line-height: 1.6;">
+      {{#if product.description}}{{product.description}}{{else}}<span class="text-muted">Tidak ada deskripsi.</span>{{/if}}
+    </div>
+  </div>
+
+  <div class="d-flex justify-between align-center text-muted" style="border-top: 1px solid #e2e8f0; padding-top: 14px;">
+    <span>Dibuat: <strong>{{formatDate product.created_at}}</strong></span>
+    <span>Diperbarui: <strong>{{formatDate product.updated_at}}</strong></span>
+  </div>
+</div>
+
+<script>
+  async function handleDeleteProduct(id, name) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus produk "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/products/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (response.ok) {
+        window.location.href = '/products?success=' + encodeURIComponent(`Produk "${name}" berhasil dihapus.`);
+      } else {
+        const err = await response.json();
+        alert('Gagal menghapus: ' + (err.message || 'Terjadi kesalahan'));
+      }
+    } catch (e) {
+      alert('Terjadi kesalahan jaringan.');
+    }
+  }
+</script>

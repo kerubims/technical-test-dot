@@ -1,0 +1,97 @@
+<div class="mb-3">
+  <a href="/categories" class="btn btn-secondary">&larr; Kembali</a>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">
+        {{#if isEdit}}Edit Kategori{{else}}Tambah Kategori{{/if}}
+      </h2>
+    </div>
+  </div>
+
+  <form id="categoryForm">
+    <div class="form-group">
+      <label for="name" class="form-label">
+        Nama Kategori <span class="required">*</span>
+      </label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="{{category.name}}"
+        required
+        placeholder="Nama Kategori"
+        class="form-control"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="description" class="form-label">
+        Deskripsi
+      </label>
+      <textarea
+        id="description"
+        name="description"
+        placeholder="Deskripsi"
+        class="form-control"
+      >{{category.description}}</textarea>
+    </div>
+
+    <div class="d-flex justify-between align-center mt-4">
+      <a href="/categories" class="btn btn-secondary">Batal</a>
+      <button type="submit" id="submitBtn" class="btn btn-primary">
+        Simpan
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('categoryForm');
+  const isEdit = {{#if isEdit}}true{{else}}false{{/if}};
+  const categoryId = {{#if isEdit}}{{category.id}}{{else}}null{{/if}};
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Menyimpan...';
+
+    const payload = {
+      name: document.getElementById('name').value.trim(),
+      description: document.getElementById('description').value.trim(),
+    };
+
+    const targetUrl = isEdit ? `/categories/${categoryId}` : '/categories';
+    const httpMethod = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(targetUrl, {
+        method: httpMethod,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const msg = isEdit ? 'Kategori berhasil diperbarui.' : 'Kategori berhasil ditambahkan.';
+        window.location.href = '/categories?success=' + encodeURIComponent(msg);
+      } else {
+        alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Simpan';
+      }
+    } catch (err) {
+      alert('Gagal menghubungi server.');
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Simpan';
+    }
+  });
+</script>
